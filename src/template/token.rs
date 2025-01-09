@@ -1,0 +1,12 @@
+pub const ESCAPE: char = '\\';
+pub const ANCHOR: char = '$';
+pub const ANCHOR_OPEN: char = '{';
+pub const ANCHOR_CLOSE: char = '}';
+pub const INDEX_OPEN: char = '[';
+pub const INDEX_CLOSE: char = ']';
+pub const DEFAULT_PIPE: char = '|';
+pub const SPACE: char = ' ';
+pub const LITERAL_DOUBLE_QUOTE: char = '"';
+pub const LITERAL_SINGLE_QUOTE: char = '\'';
+pub const ATTRIBUTE_OPEN: char = '(';
+pub const ATTRIBUTE_CLOSE: char = ')';
