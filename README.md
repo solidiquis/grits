@@ -19,6 +19,7 @@ The left pane in the above screenshot is the raw output of `tcpdump` while the r
 ## Table of Contents
 
 * [Usage](#usage)
+* [Installation](#installation)
 * [Templating language](#templating-language)
     - [Indexing](#indexing)
     - [Default values](#default-values)
@@ -51,6 +52,30 @@ Options:
 ```
 
 See the long `--help` description for further details and example from the command-line.
+
+## Installation
+
+### crates.io
+
+```bash
+cargo install erdtree
+```
+
+### cURL
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/solidiquis/grits/releases/download/v0.1.0/grits-installer.sh | sh
+```
+
+### Powershell
+
+```bash
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/solidiquis/grits/releases/download/v0.1.0/grits-installer.ps1 | iex"
+```
+
+### Manual installation
+
+Check the [releases page](https://github.com/solidiquis/grits/releases) for prebuilt binaries.
 
 ## Templating language
 
