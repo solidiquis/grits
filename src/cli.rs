@@ -82,7 +82,7 @@ Will get you the following output:
 
 Anchors come with a handful of other features as well:
 
-1. Indexing in the case of multiple captures for a given a single named capture group:
+1. Indexing in the case of multiple matches for a given a single named capture group:
 
     ${log[1]}
 
@@ -91,7 +91,7 @@ value will be used in the output (ultimately falls back to an empty string):
 
     ${log || foo || bar[1] || \"NO MATCH\"}
 
-3. Apply ANSI-escape sequences as attributes to an anchor:
+3. Apply to an anchor like so:
 
     ${(red|bold):foo}
 
@@ -113,26 +113,26 @@ the anchors. Multiple attributes may be used together like so:
 
 The following attributes are currently available:
 
-- black
-- red
-- green
-- yellow
-- blue
-- magenta
-- cyan
-- white
-- bg_black
-- bg_red
-- bg_green
-- bg_yellow
-- bg_blue
-- bg_magenta
-- bg_cyan
-- bg_white
-- bold
-- underlined
-- reverse
-- crossed_out
+- black (apply a black foreground)
+- red (apply a red foreground)
+- green (apply a green foreground)
+- yellow (apply a yellow foreground)
+- blue (apply a blue foreground)
+- magenta (apply a magenta foreground)
+- cyan (apply a cyan foreground)
+- white (apply a white foreground)
+- bg_black (apply a black background)
+- bg_red (apply a red background)
+- bg_green (apply a green background)
+- bg_yellow (apply a yellow background)
+- bg_blue (apply a blue background)
+- bg_magenta (apply a magenta background)
+- bg_cyan (apply a cyan background)
+- bg_white (apply a white background)
+- bold (make text bold)
+- underlined (underline text)
+- reverse (reverse text)
+- crossed_out (crossout text)
 
 ----------------
 ----EXAMPLES----
