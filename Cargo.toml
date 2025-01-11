@@ -11,7 +11,7 @@ readme = "README.md"
 license = "MIT"
 keywords = ["commandline", "cli", "grep", "ripgrep", "regex"]
 categories = ["command-line-utilities", "development-tools", "development-tools::debugging"]
-rust-version = "1.84"
+rust-version = "1.83"
 exclude=["/images"]
 repository="https://github.com/solidiquis/grits"
 
