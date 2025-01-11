@@ -62,7 +62,7 @@ See the long `--help` description for further details and example from the comma
 ### crates.io
 
 ```bash
-cargo install erdtree
+cargo install grits
 ```
 
 ### cURL
