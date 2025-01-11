@@ -1,6 +1,6 @@
 use super::{
-    rules::VALID_ANCHOR_NAME,
-    token::{ANCHOR, ANCHOR_CLOSE, ANCHOR_OPEN, ESCAPE},
+    parse::rules::VALID_ANCHOR_CHARSET,
+    token::{ANCHOR, ANCHOR_CLOSE, ANCHOR_OPEN, ATTRIBUTE_CLOSE, ATTRIBUTE_END, ESCAPE},
 };
 use indoc::{formatdoc, indoc};
 use std::fmt::{self, Display};
@@ -44,9 +44,7 @@ impl ParseError {
         ParseError {
             char_index,
             partial_template: chars.iter().collect(),
-            message: format!(
-                "A character immediately following the '{ESCAPE}' escape is required."
-            ),
+            message: format!("A character immediately following the '{ESCAPE}' escape is required."),
         }
     }
 
@@ -62,7 +60,9 @@ impl ParseError {
         ParseError {
             char_index,
             partial_template: chars.iter().collect(),
-            message: format!("Anchor name cannot be blank and must satisfy the following regular expression: {VALID_ANCHOR_NAME}"),
+            message: format!(
+                "Anchor name cannot be blank and must satisfy the following regular expression: {VALID_ANCHOR_CHARSET}"
+            ),
         }
     }
 
@@ -121,7 +121,9 @@ impl ParseError {
         ParseError {
             char_index,
             partial_template: chars.iter().collect(),
-            message: String::from("Invalid syntax: encountered a disallowed character while parsing default value operation.")
+            message: String::from(
+                "Invalid syntax: encountered a disallowed character while parsing default value operation.",
+            ),
         }
     }
 
@@ -129,7 +131,7 @@ impl ParseError {
         ParseError {
             char_index,
             partial_template: chars.iter().collect(),
-            message: String::from("Invalid syntax: template string ends prematurely while parsing an index operation.")
+            message: String::from("Invalid syntax: template string ends prematurely while parsing an index operation."),
         }
     }
 
@@ -137,9 +139,33 @@ impl ParseError {
         ParseError {
             char_index,
             partial_template: chars.iter().collect(),
-            message: String::from(
-                "Invalid syntax: template string ends prematurely while parsing default values.",
+            message: String::from("Invalid syntax: template string ends prematurely while parsing default values."),
+        }
+    }
+
+    pub fn attribute_unclosed(char_index: usize, chars: &[char]) -> Self {
+        ParseError {
+            char_index,
+            partial_template: chars.iter().collect(),
+            message: format!("Invalid syntax: expected a closing '{ATTRIBUTE_CLOSE}' after attributes."),
+        }
+    }
+
+    pub fn attribute_end(char_index: usize, chars: &[char]) -> Self {
+        ParseError {
+            char_index,
+            partial_template: chars.iter().collect(),
+            message: format!(
+                "Invalid syntax: expected a '{ATTRIBUTE_END}' after the closing '{ATTRIBUTE_CLOSE}' of attributes."
             ),
+        }
+    }
+
+    pub fn attribute_invalid_char(char_index: usize, chars: &[char]) -> Self {
+        ParseError {
+            char_index,
+            partial_template: chars.iter().collect(),
+            message: String::from("Invalid syntax: unrecognized character in attributes"),
         }
     }
 }

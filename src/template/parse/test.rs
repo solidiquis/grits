@@ -1,6 +1,4 @@
-use super::{parse, DefaultValue};
-
-//${(red|green|bold):foo}
+use super::{attr::Attribute, parse, DefaultValue};
 
 #[test]
 fn test_parse_plain() {
@@ -124,6 +122,7 @@ fn test_default_anchor() {
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
+    assert_eq!("${foo||bar}", &template_string[anchor.start..anchor.end]);
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 1);
     let DefaultValue::Anchor { name, index } = &default_values[0] else {
@@ -139,6 +138,8 @@ fn test_default_anchor_whitespace() {
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
+    assert_eq!("${foo || bar}", &template_string[anchor.start..anchor.end]);
+
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 1);
     let DefaultValue::Anchor { name, index } = &default_values[0] else {
@@ -150,13 +151,12 @@ fn test_default_anchor_whitespace() {
 
 #[test]
 fn test_default_anchor_indexes() {
-    if std::env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
     let template_string = "primary=${foo || bar[0]}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
+    assert_eq!("${foo || bar[0]}", &template_string[anchor.start..anchor.end]);
+
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 1);
     let DefaultValue::Anchor { name, index } = &default_values[0] else {
@@ -172,6 +172,8 @@ fn test_default_anchor_multi_value() {
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
+    assert_eq!("${foo || bar || baz}", &template_string[anchor.start..anchor.end]);
+
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 2);
 
@@ -190,6 +192,11 @@ fn test_default_values_multi_value_with_indexes() {
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
+    assert_eq!(
+        "${foo[3] || bar[0] || \"baz\"}",
+        &template_string[anchor.start..anchor.end]
+    );
+
     assert!(anchor.index.is_some_and(|i| i == 3));
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 2);
@@ -205,4 +212,48 @@ fn test_default_values_multi_value_with_indexes() {
             }
         }
     }
+}
+
+#[test]
+fn test_attribute() {
+    let template_string = "output=${(red|bold):foo}";
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert_eq!("${(red|bold):foo}", &template_string[anchor.start..anchor.end]);
+    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Red).is_some());
+    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Bold).is_some());
+}
+
+#[test]
+fn test_literal_anchor() {
+    let template_string = r#"output=${"foo"}"#;
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert!(anchor.name.is_empty());
+    assert_eq!(anchor.defaults.len(), 1);
+    let DefaultValue::Literal(val) = &anchor.defaults[0] else {
+        panic!("expected literal");
+    };
+    assert_eq!(val, "foo")
+}
+
+#[test]
+fn test_literal_anchor_with_attributes() {
+    if std::env::var("RUST_LOG").is_ok() {
+        env_logger::init();
+    }
+    let template_string = r#"output=${(red|bold):"foo"}"#;
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert!(anchor.name.is_empty());
+    assert_eq!(anchor.defaults.len(), 1);
+    let DefaultValue::Literal(val) = &anchor.defaults[0] else {
+        panic!("expected literal");
+    };
+    assert_eq!(val, "foo");
+    assert!(anchor.attributes.len() > 0);
+
+    assert_eq!("${(red|bold):\"foo\"}", &template_string[anchor.start..anchor.end]);
+    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Red).is_some());
+    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Bold).is_some());
 }

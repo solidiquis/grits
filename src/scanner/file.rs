@@ -5,17 +5,18 @@ use std::{
     path::Path,
 };
 
+/// A type that implements [Iterator] to iterate through each
+/// line of the input file(s) in a buffered manner.
 pub struct MultiFileScanner {
     current_buf_reader_idx: usize,
     buf_readers: Vec<Lines<BufReader<File>>>,
 }
 
 impl MultiFileScanner {
+    /// Takes in a list of paths to files to read through.
     fn new<F: AsRef<Path>>(file_paths: &[F]) -> Result<Self> {
         if file_paths.is_empty() {
-            return Err(format_err!(
-                "MultiFileScanner cannot be created without input files"
-            ));
+            return Err(format_err!("MultiFileScanner cannot be created without input files"));
         }
         let mut buf_readers = Vec::with_capacity(file_paths.len());
 

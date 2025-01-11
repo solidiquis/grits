@@ -1,6 +1,6 @@
-use anyhow::Result;
-use std::io::{self, BufRead, Lines, StdinLock};
+use std::io::{self, Lines, StdinLock};
 
+/// A type that implements [Iterator] to iterate through lines from standard input.
 pub struct StdinScanner {
     inner: Lines<StdinLock<'static>>,
 }
