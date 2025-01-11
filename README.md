@@ -1,5 +1,9 @@
 # Grits
 
+[![Build status](https://github.com/solidiquis/grits/actions/workflows/rust_ci.yml/badge.svg)](https://github.com/solidiquis/grits/actions)
+[![Crates.io](https://img.shields.io/crates/v/grits.svg)](https://crates.io/crates/grits)
+[![Crates.io](https://img.shields.io/crates/d/grits)](https://crates.io/crates/grits)
+
 `grits` is a minimal, simple, easy-to-use line text-processor that applies regular expressions with named captures to input lines
 and transforms them using a custom template string. It allows for efficient parsing, extracting, and formatting of text,
 including support for colorization and other attributes you'd get using ANSI escape sequences.
