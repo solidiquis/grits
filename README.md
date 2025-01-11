@@ -180,7 +180,7 @@ All well-intentioned forms of contributions are welcome.
 
 ## Donating
 
-If you like this tool, please consider [buying me a coffee](buymeacoffee.com/O3nsHqb7A9). Much appreciated!
+If you like this tool, please consider [buying me a coffee](https://buymeacoffee.com/O3nsHqb7A9). Much appreciated!
 
 ## FAQ
 
