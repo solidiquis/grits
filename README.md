@@ -11,7 +11,7 @@ including support for colorization and other attributes you'd get using ANSI esc
 The following example demonstrates how to apply `grits` to `tcpdump` to extract a packet's source IP address:
 
 ```bash
-sudo tcpdump | grits -p '^(?<ts>[^ ]+)' \
+tcpdump | grits -p '^(?<ts>[^ ]+)' \
   -p 'IP\w? (?<src>[^ ]+)' \
   -t '[${(cyan|bold):ts}] ${(green|underlined):"src"}=${src || "NOMATCH"}'
 
@@ -188,9 +188,9 @@ docker logs -f 93670ea0964c | grits -p 'log_level=info(?<log>.*)' -o 'INFO LOG: 
 3. Attributes, default values, and multiple regular expressions:
 
 ```bash
-kubectl logs -f -n foo -l app=bar | grits \\
-     -p '^kernel:(?<kern>.*)' \\
-     -p '^sysctl:(?<sys>.*)' \\
+kubectl logs -f -n foo -l app=bar | grits \
+     -p '^kernel:(?<kern>.*)' \
+     -p '^sysctl:(?<sys>.*)' \
      -o kernel=${(cyan):kern || \"NONE\"} sysctl=${(magenta):sys || \"NONE\"}
 ```
 
