@@ -5,7 +5,7 @@ description = """
 A text line processor that applies regular expressions with named captures
 to input lines and transforms them using a user-generated template.
 """
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 readme = "README.md"
 license = "MIT"
