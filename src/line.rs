@@ -15,6 +15,7 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
         template,
         files,
         line_buffered,
+        require,
         ..
     } = args;
 
@@ -55,7 +56,7 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
 
     let mut writer = init_output_writer(tty, *line_buffered);
 
-    for line in scanner {
+    'outer: for line in scanner {
         // Each iteration starts with a fresh captures map. Doing it this way the lifetime of the
         // new captures map contain the lifetime of `line`, allowing us to work with a `Vec<&str>`
         // as opposed to `Vec<String>`. There's no telling how many matches there could possibly be
@@ -74,6 +75,11 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
                         .and_modify(|c| c.push(val.as_str()))
                         .or_insert_with(|| vec![val.as_str()]);
                 }
+            }
+        }
+        for capture_name in require {
+            if captures_map.get(capture_name.as_str()).is_none_or(|c| c.is_empty()) {
+                continue 'outer;
             }
         }
         let output_line = template.transform(&captures_map);

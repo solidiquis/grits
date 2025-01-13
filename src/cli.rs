@@ -165,7 +165,12 @@ pub struct Cli {
     /// Input files
     pub files: Vec<String>,
 
-    /// Force output to be line-buffered.  By default, output is line buffered when stdout is a
+    /// Name of capture that must have at least one match for the output to show. Can be specified
+    /// multiple times
+    #[arg(short, long)]
+    pub require: Vec<String>,
+
+    /// Force output to be line-buffered. By default, output is line buffered when stdout is a
     /// terminal and block-buffered otherwise
     #[arg(long)]
     pub line_buffered: bool,
