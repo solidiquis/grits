@@ -4,21 +4,21 @@
 [![Crates.io](https://img.shields.io/crates/v/grits.svg)](https://crates.io/crates/grits)
 [![Crates.io](https://img.shields.io/crates/d/grits)](https://crates.io/crates/grits)
 
-`grits` is a minimal, simple, easy-to-use line text-processor that applies regular expressions with named captures to input lines
+`grits` is a minimal, simple, and easy-to-use line text-processor that applies regular expressions with named captures to input lines
 and transforms them using a custom template string. It allows for efficient parsing, extracting, and formatting of text,
 including support for colorization and other attributes you'd get using ANSI escape sequences.
 
-The following example demonstrates how to apply `grits` to `tcpdump` to extract a packet's source IP address:
+The following example demonstrates how to apply `grits` to `tcpdump` to extract a packet's source (`src`) and destination (`dst`) IP address:
 
 ```bash
-tcpdump | grits -p '^(?<ts>[^ ]+)' \
+sudo tcpdump -nn | grits -p '^(?<ts>[^ ]+)' \
   -p 'IP\w? (?<src>[^ ]+)' \
-  -t '[${(cyan|bold):ts}] ${(green|underlined):"src"}=${src || "NOMATCH"}'
-
+  -p '> (?<dst>[^ ]+):' \
+  -t '[${(cyan|bold):ts}] ${(green|underlined):"src"}=${src} ${(yellow|underlined):"dst"}=${dst}'
 ```
 
 ![demo image](images/demo.png)
-The left pane in the above screenshot is the raw output of `tcpdump` while the right pane shows the output being piped into `grits`.
+The top pane in the above screenshot is the raw output of `tcpdump` while the bottom pane shows the output being piped into `grits`.
 
 ## Table of Contents
 
@@ -49,7 +49,8 @@ Arguments:
 Options:
   -p, --pattern <PATTERN>          A regular expression with named captures. Can be specified multiple times
   -t, --template <TEMPLATE>        A template string that defines how to transform a line input. See long '--help'
-      --line-buffered              Force output to be line-buffered.  By default, output is line buffered when stdout is a terminal and block-buffered otherwise
+  -r, --require <REQUIRE>          Name of capture that must have at least one match for the output to show. Can be specified multiple times
+      --line-buffered              Force output to be line-buffered. By default, output is line buffered when stdout is a terminal and block-buffered otherwise
   -c, --completions <COMPLETIONS>  Produce completions for shell and exit [possible values: bash, elvish, fish, powershell, zsh]
   -h, --help                       Print help (see more with '--help')
   -V, --version                    Print version
@@ -68,13 +69,13 @@ cargo install grits
 ### cURL
 
 ```bash
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/solidiquis/grits/releases/download/v0.1.0/grits-installer.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/solidiquis/grits/releases/download/v0.2.0/grits-installer.sh | sh
 ```
 
 ### Powershell
 
 ```bash
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/solidiquis/grits/releases/download/v0.1.0/grits-installer.ps1 | iex"
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/solidiquis/grits/releases/download/v0.2.0/grits-installer.ps1 | iex"
 ```
 
 ### Manual installation
@@ -94,7 +95,7 @@ echo 'level=info msg=foobar path=/baz' | grit -p 'msg=(?<log>[^ ]+)' -o 'transfo
 ```
 
 In this command, we use a regular expression to capture the value associated with the msg field.
-The capture group is named log. The template string `transformed=${log}` will replace `${log}` with
+The capture group is named `log`. The template string `transformed=${log}` will replace `${log}` with
 the value captured from the input. The output will then be:
 
 ```
