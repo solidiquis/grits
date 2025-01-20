@@ -14,7 +14,7 @@ The following example demonstrates how to apply `grits` to `tcpdump` to extract 
 sudo tcpdump -nn | grits -p '^(?<ts>[^ ]+)' \
   -p 'IP\w? (?<src>[^ ]+)' \
   -p '> (?<dst>[^ ]+):' \
-  -t '[${(cyan|bold):ts}] ${(green|underlined):"src"}=${src} ${(yellow|underlined):"dst"}=${dst}'
+  -t '[{(cyan|bold):ts}] {(green|underlined):"src"}={src} {(yellow|underlined):"dst"}={dst}'
 ```
 
 ![demo image](images/demo.png)
@@ -85,17 +85,17 @@ Check the [releases page](https://github.com/solidiquis/grits/releases) for preb
 ## Templating language
 
 `grits` uses a simple templating language to transform text, where templates consist of anchors.
-Anchors are placeholders enclosed within `${...}` that correspond to named capture groups from
+Anchors are placeholders enclosed within `{...}` that correspond to named capture groups from
 the regular expression applied to the input. Once a match is found, the value from the
 capture group is inserted into the anchor’s position in the template string.
 
 Here's an example:
 ```bash
-echo 'level=info msg=foobar path=/baz' | grit -p 'msg=(?<log>[^ ]+)' -o 'transformed=${log}'
+echo 'level=info msg=foobar path=/baz' | grit -p 'msg=(?<log>[^ ]+)' -t 'transformed={log}'
 ```
 
 In this command, we use a regular expression to capture the value associated with the msg field.
-The capture group is named `log`. The template string `transformed=${log}` will replace `${log}` with
+The capture group is named `log`. The template string `transformed={log}` will replace `{log}` with
 the value captured from the input. The output will then be:
 
 ```
@@ -104,7 +104,7 @@ transformed=foobar
 
 To summarize:
 - The regular expression `msg=(?<log>[^ ]+)` captures the value `foobar` into the `log` capture group.
-- The template `transformed=${log}` uses the value of `log` to generate the output.
+- The template `transformed={log}` uses the value of `log` to generate the output.
 
 The following are additional features of `grits` templating system:
 
@@ -116,7 +116,7 @@ immediately after the anchor name.  For example, to access the second match of t
 capture group, you would use:
 
 ```
-${log[1]}
+{log[1]}
 ```
 
 ### Default values
@@ -125,7 +125,7 @@ If a particular anchor doesn't have an associated match, default values can be c
 operator like so:
 
 ```
-${log || foo || bar[1] || "NO MATCH"}
+{log || foo || bar[1] || "NO MATCH"}
 ```
 
 The first default value that doesn't produce a blank string will be used. Default values can be
@@ -136,14 +136,14 @@ other anchors or a string literal.
 Attributes offer additional means to transform text. Attributes are applied to anchors like so:
 
 ```
-${(red|bold):ipaddr_v4}
+{(red|bold):ipaddr_v4}
 ```
 
 Here is an example using attributes with default values:
 
 
 ```
-${(red|bold):ipaddr_v4 || ipaddr_v6 || "NOMATCH"}
+{(red|bold):ipaddr_v4 || ipaddr_v6 || "NOMATCH"}
 ```
 
 In the above example, `red` and `bold` will be applied the entire anchor.
@@ -177,13 +177,13 @@ The following attributes are currently available:
 1. Multi-file processing:
 
 ```bash
-grits -p 'sysctl=(?<sysctl>.*)'` -p 'sysctl output: ${sysctl}' file1 file2
+grits -p 'sysctl=(?<sysctl>.*)'` -t 'sysctl output: {sysctl}' file1 file2
 ```
 
 2. Piping:
 
 ```bash
-docker logs -f 93670ea0964c | grits -p 'log_level=info(?<log>.*)' -o 'INFO LOG: ${log}'
+docker logs -f 93670ea0964c | grits -p 'log_level=info(?<log>.*)' -t 'INFO LOG: {log}'
 ```
 
 3. Attributes, default values, and multiple regular expressions:
@@ -192,10 +192,10 @@ docker logs -f 93670ea0964c | grits -p 'log_level=info(?<log>.*)' -o 'INFO LOG: 
 kubectl logs -f -n foo -l app=bar | grits \
      -p '^kernel:(?<kern>.*)' \
      -p '^sysctl:(?<sys>.*)' \
-     -o kernel=${(cyan):kern || \"NONE\"} sysctl=${(magenta):sys || \"NONE\"}
+     -t 'kernel={(cyan):kern || \"NONE\"} sysctl={(magenta):sys || \"NONE\"}'
 ```
 
-### Completions
+## Completions
 
 Completions for supported shells can be generated using `grits --completions <SHELl>`. Consult your shell's documentation
 for how to setup completions. For `zsh`, completions are bootstrapped like so:
@@ -203,6 +203,11 @@ for how to setup completions. For `zsh`, completions are bootstrapped like so:
 ```bash
 grits --completions zsh > ~/.oh-my-zsh/completions/_grits
 ```
+
+## Colorization
+
+`grits` follows the informal [NO_COLOR](https://no-color.org/) standard. Setting `NO_COLOR` to a non-blank value will disable output colorization.
+If stdout is not a terminal, colorization is automatically disabled.
 
 ## Contributing
 

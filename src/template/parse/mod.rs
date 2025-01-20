@@ -1,8 +1,8 @@
 use super::{
     error::ParseError,
     token::{
-        ANCHOR, ANCHOR_CLOSE, ANCHOR_OPEN, ATTRIBUTE_CLOSE, ATTRIBUTE_DELIMETER, ATTRIBUTE_END, ATTRIBUTE_OPEN,
-        DEFAULT_PIPE, ESCAPE, INDEX_CLOSE, INDEX_OPEN, LITERAL_DOUBLE_QUOTE, LITERAL_SINGLE_QUOTE,
+        ANCHOR_CLOSE, ANCHOR_OPEN, ATTRIBUTE_CLOSE, ATTRIBUTE_DELIMETER, ATTRIBUTE_END, ATTRIBUTE_OPEN, DEFAULT_PIPE,
+        ESCAPE, INDEX_CLOSE, INDEX_OPEN, LITERAL_DOUBLE_QUOTE, LITERAL_SINGLE_QUOTE,
     },
 };
 use anyhow::{format_err, Result};
@@ -63,7 +63,7 @@ enum ParseStateMode {
     /// Encountered an escape character which will cause the next token to be treated as a
     /// non-special character.
     Escaping,
-    /// Encountered `$` which begins the anchor.
+    /// Encountered `{` which begins the anchor.
     AnchorBegin,
     /// Parse anchor name
     AnchorParseBase,
@@ -121,7 +121,7 @@ fn parse_impl(mode: &mut ParseState, anchors: &mut Vec<Anchor>, rules: &Rules) -
                 if ch == ESCAPE {
                     mode.mode = ParseStateMode::Escaping;
                     return parse_impl(mode, anchors, rules);
-                } else if ch == ANCHOR {
+                } else if ch == ANCHOR_OPEN {
                     mode.mode = ParseStateMode::AnchorBegin;
                     mode.bound_anchor = Some(Anchor {
                         start: mode.cursor,
@@ -145,11 +145,6 @@ fn parse_impl(mode: &mut ParseState, anchors: &mut Vec<Anchor>, rules: &Rules) -
 
         ParseStateMode::AnchorBegin => {
             mode.cursor += 1;
-            if mode.tokens.get(mode.cursor).is_none_or(|ch| *ch != ANCHOR_OPEN) {
-                return Err(ParseError::invalid_anchor_start(mode.cursor - 1, &mode.tokens).into());
-            }
-            mode.cursor += 1;
-
             for i in mode.cursor..mode.tokens.len() {
                 if mode.tokens.get(mode.cursor).is_some_and(|ch| ch.is_ascii_whitespace()) {
                     mode.cursor = i;

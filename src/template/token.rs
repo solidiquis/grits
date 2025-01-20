@@ -1,5 +1,4 @@
 pub const ESCAPE: char = '\\';
-pub const ANCHOR: char = '$';
 pub const ANCHOR_OPEN: char = '{';
 pub const ANCHOR_CLOSE: char = '}';
 pub const INDEX_OPEN: char = '[';
