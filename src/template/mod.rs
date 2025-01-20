@@ -33,9 +33,6 @@ impl OutputTemplate {
     pub fn parse(template: &str) -> Result<Self> {
         let anchors = parse::parse(template)?;
 
-        if anchors.is_empty() {
-            return Ok(Self::default());
-        }
         let mut targets = Vec::new();
 
         let mut left_cursor = 0;
@@ -76,10 +73,10 @@ impl OutputTemplate {
 
         for target in &self.targets {
             match target {
-                InterpolationTarget::Literal(val) => out.push_str(val),
                 InterpolationTarget::Anchor(anchor) => {
                     let name = anchor.name.as_str();
                     let index = anchor.index.unwrap_or_default();
+
                     if let Some(val) = interpolation_map.get(name).and_then(|vals| vals.get(index)) {
                         if anchor.attributes.is_empty() {
                             out.push_str(val);
@@ -89,6 +86,12 @@ impl OutputTemplate {
                         }
                         continue;
                     }
+
+                    // No match, return empty string.
+                    if anchor.required {
+                        return String::new();
+                    }
+
                     for default_val in &anchor.defaults {
                         match default_val {
                             DefaultValue::Literal(val) => {
@@ -116,6 +119,7 @@ impl OutputTemplate {
                         }
                     }
                 }
+                InterpolationTarget::Literal(val) => out.push_str(val),
             }
         }
         out

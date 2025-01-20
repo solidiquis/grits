@@ -10,3 +10,4 @@ pub const ATTRIBUTE_OPEN: char = '(';
 pub const ATTRIBUTE_CLOSE: char = ')';
 pub const ATTRIBUTE_DELIMETER: char = '|';
 pub const ATTRIBUTE_END: char = ':';
+pub const REQUIRED: char = '!';

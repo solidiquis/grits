@@ -84,3 +84,20 @@ fn test_output_template_attributes() {
     let expected = Attribute::apply("bar_value_2", &[Attribute::Red, Attribute::Bold]);
     assert_eq!(resultant, format!("{expected}"));
 }
+
+#[test]
+fn test_output_template_required() {
+    let template = "log={!foo} out={bar} baz";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 5);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec![]);
+    interpolation_map.insert("bar", vec!["bar_value"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(
+        resultant, "",
+        "foo doesn't have any matches so string should come back empty"
+    );
+}

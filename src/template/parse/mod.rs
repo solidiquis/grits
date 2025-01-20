@@ -2,7 +2,7 @@ use super::{
     error::ParseError,
     token::{
         ANCHOR_CLOSE, ANCHOR_OPEN, ATTRIBUTE_CLOSE, ATTRIBUTE_DELIMETER, ATTRIBUTE_END, ATTRIBUTE_OPEN, DEFAULT_PIPE,
-        ESCAPE, INDEX_CLOSE, INDEX_OPEN, LITERAL_DOUBLE_QUOTE, LITERAL_SINGLE_QUOTE,
+        ESCAPE, INDEX_CLOSE, INDEX_OPEN, LITERAL_DOUBLE_QUOTE, LITERAL_SINGLE_QUOTE, REQUIRED,
     },
 };
 use anyhow::{format_err, Result};
@@ -41,6 +41,7 @@ pub struct Anchor {
     pub index: Option<usize>,
     pub defaults: Vec<DefaultValue>,
     pub attributes: Vec<Attribute>,
+    pub required: bool,
 }
 
 /// State that is maintained during parsing. The `cursor` is the index of the current token
@@ -151,6 +152,16 @@ fn parse_impl(mode: &mut ParseState, anchors: &mut Vec<Anchor>, rules: &Rules) -
                     break;
                 }
                 continue;
+            }
+            if mode.tokens.get(mode.cursor).is_some_and(|ch| *ch == REQUIRED) {
+                let Some(anchor) = mode.bound_anchor.as_mut() else {
+                    log::error!("expected mode.bound_anchor to be `Some` while in `AnchorParseBegin`");
+                    return Err(format_err!(
+                        "An unexpected error occurred while parsing template string."
+                    ));
+                };
+                anchor.required = true;
+                mode.cursor += 1;
             }
             if mode.tokens.get(mode.cursor).is_some_and(|ch| *ch == ATTRIBUTE_OPEN) {
                 mode.mode = ParseStateMode::AttributeParse;
@@ -266,6 +277,10 @@ fn parse_impl(mode: &mut ParseState, anchors: &mut Vec<Anchor>, rules: &Rules) -
         }
 
         ParseStateMode::AnchorParseDefaultValue => {
+            if mode.bound_anchor.as_ref().is_some_and(|a| a.required) {
+                return Err(ParseError::default_disallowed_with_required(mode.cursor - 1, &mode.tokens).into());
+            }
+
             mode.cursor += 1;
             for i in mode.cursor..mode.tokens.len() {
                 mode.cursor = i;

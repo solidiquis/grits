@@ -1,6 +1,6 @@
 use super::{
     parse::rules::VALID_ANCHOR_CHARSET,
-    token::{ANCHOR_CLOSE, ATTRIBUTE_CLOSE, ATTRIBUTE_END, ESCAPE},
+    token::{ANCHOR_CLOSE, ATTRIBUTE_CLOSE, ATTRIBUTE_END, ESCAPE, REQUIRED},
 };
 use indoc::{formatdoc, indoc};
 use std::fmt::{self, Display};
@@ -115,6 +115,16 @@ impl ParseError {
             partial_template: chars.iter().collect(),
             message: String::from(
                 "Invalid syntax: encountered a disallowed character while parsing default value operation.",
+            ),
+        }
+    }
+
+    pub fn default_disallowed_with_required(char_index: usize, chars: &[char]) -> Self {
+        ParseError {
+            char_index,
+            partial_template: chars.iter().collect(),
+            message: format!(
+                "Default values are disallowed when an anchor is marked as required with a leading '{REQUIRED}'",
             ),
         }
     }

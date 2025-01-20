@@ -1,8 +1,9 @@
 use crate::{
+    cli::{Cli, RequireMode},
     scanner::{MultiFileScanner, StdinScanner},
     template::OutputTemplate,
     tty::init_output_writer,
-    Cli, TtyContext,
+    TtyContext,
 };
 use anyhow::{format_err, Context, Result};
 use regex::Regex;
@@ -16,15 +17,23 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
         files,
         line_buffered,
         require,
+        require_mode,
+        separator,
         ..
     } = args;
 
-    let template = OutputTemplate::parse(template)?;
+    let filters = require
+        .as_ref()
+        .map_or_else(Vec::new, |r| r.split(",").map(str::trim).collect::<Vec<_>>());
+
+    let mut templates = Vec::with_capacity(template.len());
+    for templ in template {
+        templates.push(OutputTemplate::parse(templ)?);
+    }
 
     let mut regexes = Vec::new();
     for pat in pattern {
-        let re =
-            Regex::new(pat).with_context(|| format!("encountered invalid regular expression in pattern: {pat}"))?;
+        let re = Regex::new(pat).with_context(|| format!("encountered invalid regular expression: {pat}"))?;
         regexes.push(re);
     }
 
@@ -77,17 +86,31 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
                 }
             }
         }
-        for capture_name in require {
-            if captures_map.get(capture_name.as_str()).is_none_or(|c| c.is_empty()) {
-                continue 'outer;
+        match require_mode {
+            RequireMode::All => {
+                if !filters
+                    .iter()
+                    .all(|capname| captures_map.get(capname).is_some_and(|c| !c.is_empty()))
+                {
+                    continue 'outer;
+                }
+            }
+            RequireMode::Any => {
+                if !filters
+                    .iter()
+                    .any(|capname| captures_map.get(capname).is_some_and(|c| !c.is_empty()))
+                {
+                    continue 'outer;
+                }
             }
         }
-        let output_line = template.transform(&captures_map);
+        let output = templates
+            .iter()
+            .map(|t| t.transform(&captures_map))
+            .collect::<Vec<String>>()
+            .join(separator);
 
-        if output_line.is_empty() {
-            continue;
-        }
-        writer.writeln(&output_line)?;
+        writer.writeln(&output)?;
     }
     Ok(())
 }
