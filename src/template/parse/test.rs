@@ -8,6 +8,7 @@ fn test_parse_plain() {
 
     let anchor = &anchors[0];
     assert_eq!(&anchor.name, "log");
+    assert!(!anchor.required);
     assert_eq!("{log}", &template_string[anchor.start..anchor.end]);
     assert_eq!(anchor.index, None);
 }
@@ -247,4 +248,50 @@ fn test_literal_anchor_with_attributes() {
     assert_eq!("{(red|bold):\"foo\"}", &template_string[anchor.start..anchor.end]);
     assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Red).is_some());
     assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Bold).is_some());
+}
+
+#[test]
+fn test_required_anchor() {
+    let template_string = "output={!log}";
+    let anchors = parse(template_string).unwrap();
+    assert_eq!(anchors.len(), 1);
+
+    let anchor = &anchors[0];
+    assert_eq!(&anchor.name, "log");
+    assert_eq!("{!log}", &template_string[anchor.start..anchor.end]);
+    assert_eq!(anchor.index, None);
+    assert!(anchor.required);
+}
+
+#[test]
+fn test_required_anchor_with_attrs() {
+    let template_string = "output={!(red|bold):log}";
+    let anchors = parse(template_string).unwrap();
+    assert_eq!(anchors.len(), 1);
+
+    let anchor = &anchors[0];
+    assert_eq!(&anchor.name, "log");
+    assert_eq!("{!(red|bold):log}", &template_string[anchor.start..anchor.end]);
+    assert_eq!(anchor.index, None);
+    assert!(anchor.required);
+}
+
+#[test]
+fn test_required_anchor_no_defaults() {
+    let template_string = "output={!log || foo}";
+    let anchors = parse(template_string);
+    assert!(anchors.is_err());
+
+    let template_string = "output={!log||foo}";
+    let anchors = parse(template_string);
+    assert!(anchors.is_err());
+
+    let template_string = "output={!log||\"foo\"}";
+    let anchors = parse(template_string);
+    assert!(anchors.is_err());
+
+    // Pointless but will support anyway
+    let template_string = "output={!'log'}";
+    let anchors = parse(template_string);
+    assert!(anchors.is_ok());
 }

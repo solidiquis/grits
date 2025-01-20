@@ -19,12 +19,16 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
         ..
     } = args;
 
-    let template = OutputTemplate::parse(template)?;
+    let filters = require.split(",").map(str::trim).collect::<Vec<_>>();
+
+    let mut templates = Vec::with_capacity(template.len());
+    for templ in template {
+        templates.push(OutputTemplate::parse(templ)?);
+    }
 
     let mut regexes = Vec::new();
     for pat in pattern {
-        let re =
-            Regex::new(pat).with_context(|| format!("encountered invalid regular expression in pattern: {pat}"))?;
+        let re = Regex::new(pat).with_context(|| format!("encountered invalid regular expression: {pat}"))?;
         regexes.push(re);
     }
 
@@ -77,17 +81,19 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
                 }
             }
         }
-        for capture_name in require {
-            if captures_map.get(capture_name.as_str()).is_none_or(|c| c.is_empty()) {
+        for capture_name in &filters {
+            if captures_map.get(capture_name).is_none_or(|c| c.is_empty()) {
                 continue 'outer;
             }
         }
-        let output_line = template.transform(&captures_map);
+        for template in &templates {
+            let output_line = template.transform(&captures_map);
 
-        if output_line.is_empty() {
-            continue;
+            if output_line.is_empty() {
+                continue;
+            }
+            writer.writeln(&output_line)?;
         }
-        writer.writeln(&output_line)?;
     }
     Ok(())
 }

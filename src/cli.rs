@@ -158,17 +158,17 @@ pub struct Cli {
     #[arg(short, long)]
     pub pattern: Vec<String>,
 
-    /// A template string that defines how to transform a line input. See long '--help'
+    /// A template string that defines how to transform a line input. Can be specified multiple
+    /// times. See long '--help'
     #[arg(short, long)]
-    pub template: String,
+    pub template: Vec<String>,
 
     /// Input files
     pub files: Vec<String>,
 
-    /// Name of capture that must have at least one match for the output to show. Can be specified
-    /// multiple times
+    /// Comma-separated capture names that must all have a match for an input line to be processed.
     #[arg(short, long)]
-    pub require: Vec<String>,
+    pub require: String,
 
     /// Force output to be line-buffered. By default, output is line buffered when stdout is a
     /// terminal and block-buffered otherwise
