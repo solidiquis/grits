@@ -1,6 +1,6 @@
 use super::{
     parse::rules::VALID_ANCHOR_CHARSET,
-    token::{ANCHOR, ANCHOR_CLOSE, ANCHOR_OPEN, ATTRIBUTE_CLOSE, ATTRIBUTE_END, ESCAPE},
+    token::{ANCHOR_CLOSE, ATTRIBUTE_CLOSE, ATTRIBUTE_END, ESCAPE},
 };
 use indoc::{formatdoc, indoc};
 use std::fmt::{self, Display};
@@ -45,14 +45,6 @@ impl ParseError {
             char_index,
             partial_template: chars.iter().collect(),
             message: format!("A character immediately following the '{ESCAPE}' escape is required."),
-        }
-    }
-
-    pub fn invalid_anchor_start(char_index: usize, chars: &[char]) -> Self {
-        ParseError {
-            char_index,
-            partial_template: chars.iter().collect(),
-            message: format!("Expected '{ANCHOR_OPEN}' to immediately follow '{ANCHOR}'."),
         }
     }
 

@@ -2,89 +2,83 @@ use super::{attr::Attribute, parse, DefaultValue};
 
 #[test]
 fn test_parse_plain() {
-    let template_string = "output=${log}";
+    let template_string = "output={log}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
 
     let anchor = &anchors[0];
     assert_eq!(&anchor.name, "log");
-    assert_eq!(anchor.start, 7);
-    assert_eq!(anchor.end, 13);
+    assert_eq!("{log}", &template_string[anchor.start..anchor.end]);
     assert_eq!(anchor.index, None);
 }
 
 #[test]
 fn test_parse_plain_whitespace() {
-    let template_string = "\toutput=${\tlog\n}   ";
+    let template_string = "\toutput={\tlog\n}   ";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
     assert_eq!(&anchor.name, "log");
-    assert_eq!(anchor.start, 8);
-    assert_eq!(anchor.end, 16);
+    assert_eq!("{\tlog\n}", &template_string[anchor.start..anchor.end]);
     assert_eq!(anchor.index, None);
 }
 
 #[test]
 fn test_parse_escape() {
-    let template_string = r"\$ output=${log}";
+    let template_string = r"\$ output={log}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
 
     let anchor = &anchors[0];
     assert_eq!(&anchor.name, "log");
-    assert_eq!(anchor.start, 10);
-    assert_eq!(anchor.end, 16);
+    assert_eq!("{log}", &template_string[anchor.start..anchor.end]);
     assert_eq!(anchor.index, None);
 
-    let template_string = r"\$ \\ output=${log}";
+    let template_string = r"\$ \\ output={log}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
 
     let anchor = &anchors[0];
     assert_eq!(&anchor.name, "log");
-    assert_eq!(anchor.start, 13);
-    assert_eq!(anchor.end, 19);
+    assert_eq!("{log}", &template_string[anchor.start..anchor.end]);
     assert_eq!(anchor.index, None);
 }
 
 #[test]
 fn test_parse_index() {
-    let template_string = "primary=${log[0]} secondary=${log[102]}";
+    let template_string = "primary={log[0]} secondary={log[102]}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 2);
 
     let anchor = &anchors[0];
     assert_eq!(&anchor.name, "log");
-    assert_eq!(anchor.start, 8);
-    assert_eq!(anchor.end, 17);
+    assert_eq!("{log[0]}", &template_string[anchor.start..anchor.end]);
     assert_eq!(anchor.index, Some(0));
 
     let anchor = &anchors[1];
     assert_eq!(&anchor.name, "log");
-    assert_eq!(anchor.start, 28);
-    assert_eq!(anchor.end, 39);
+    assert_eq!("{log[102]}", &template_string[anchor.start..anchor.end]);
     assert_eq!(anchor.index, Some(102));
 }
 
 #[test]
 fn test_parse_index_errors() {
-    let template_string = "primary=${[0]}";
+    let template_string = "primary={[0]}";
     let anchors = parse(template_string);
     assert!(anchors.is_err_and(|e| e.to_string().contains("Invalid index operation")));
 
-    let template_string = "primary=${  \t  [0]}";
+    let template_string = "primary={  \t  [0]}";
     let anchors = parse(template_string);
     assert!(anchors.is_err_and(|e| e.to_string().contains("Invalid index operation")));
 
-    let template_string = "primary=${foobar [0]}";
+    let template_string = "primary={foobar [0]}";
     let anchors = parse(template_string);
     assert!(anchors.is_err_and(|e| e.to_string().contains("Invalid index operation")));
 }
 
 #[test]
 fn test_default_literal_parse_single_value() {
-    let template_string = "primary=${foo || 'bar'}";
+    let template_string = "primary={foo || 'bar'}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
 
@@ -99,7 +93,7 @@ fn test_default_literal_parse_single_value() {
 
 #[test]
 fn test_default_literal_parse_multi_value() {
-    let template_string = "primary=${foo || 'bar' || 'baz'}";
+    let template_string = "primary={foo || 'bar' || 'baz'}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
 
@@ -118,11 +112,11 @@ fn test_default_literal_parse_multi_value() {
 
 #[test]
 fn test_default_anchor() {
-    let template_string = "primary=${foo||bar}";
+    let template_string = "primary={foo||bar}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
-    assert_eq!("${foo||bar}", &template_string[anchor.start..anchor.end]);
+    assert_eq!("{foo||bar}", &template_string[anchor.start..anchor.end]);
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 1);
     let DefaultValue::Anchor { name, index } = &default_values[0] else {
@@ -134,11 +128,11 @@ fn test_default_anchor() {
 
 #[test]
 fn test_default_anchor_whitespace() {
-    let template_string = "primary=${foo || bar}";
+    let template_string = "primary={foo || bar}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
-    assert_eq!("${foo || bar}", &template_string[anchor.start..anchor.end]);
+    assert_eq!("{foo || bar}", &template_string[anchor.start..anchor.end]);
 
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 1);
@@ -151,11 +145,11 @@ fn test_default_anchor_whitespace() {
 
 #[test]
 fn test_default_anchor_indexes() {
-    let template_string = "primary=${foo || bar[0]}";
+    let template_string = "primary={foo || bar[0]}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
-    assert_eq!("${foo || bar[0]}", &template_string[anchor.start..anchor.end]);
+    assert_eq!("{foo || bar[0]}", &template_string[anchor.start..anchor.end]);
 
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 1);
@@ -168,11 +162,11 @@ fn test_default_anchor_indexes() {
 
 #[test]
 fn test_default_anchor_multi_value() {
-    let template_string = "primary=${foo || bar || baz}";
+    let template_string = "primary={foo || bar || baz}";
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
-    assert_eq!("${foo || bar || baz}", &template_string[anchor.start..anchor.end]);
+    assert_eq!("{foo || bar || baz}", &template_string[anchor.start..anchor.end]);
 
     let default_values = &anchor.defaults;
     assert_eq!(default_values.len(), 2);
@@ -188,12 +182,12 @@ fn test_default_anchor_multi_value() {
 
 #[test]
 fn test_default_values_multi_value_with_indexes() {
-    let template_string = r#"primary=${foo[3] || bar[0] || "baz"}"#;
+    let template_string = r#"primary={foo[3] || bar[0] || "baz"}"#;
     let anchors = parse(template_string).unwrap();
     assert_eq!(anchors.len(), 1);
     let anchor = &anchors[0];
     assert_eq!(
-        "${foo[3] || bar[0] || \"baz\"}",
+        "{foo[3] || bar[0] || \"baz\"}",
         &template_string[anchor.start..anchor.end]
     );
 
@@ -216,17 +210,17 @@ fn test_default_values_multi_value_with_indexes() {
 
 #[test]
 fn test_attribute() {
-    let template_string = "output=${(red|bold):foo}";
+    let template_string = "output={(red|bold):foo}";
     let anchors = parse(template_string).unwrap();
     let anchor = &anchors[0];
-    assert_eq!("${(red|bold):foo}", &template_string[anchor.start..anchor.end]);
+    assert_eq!("{(red|bold):foo}", &template_string[anchor.start..anchor.end]);
     assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Red).is_some());
     assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Bold).is_some());
 }
 
 #[test]
 fn test_literal_anchor() {
-    let template_string = r#"output=${"foo"}"#;
+    let template_string = r#"output={"foo"}"#;
     let anchors = parse(template_string).unwrap();
     let anchor = &anchors[0];
     assert!(anchor.name.is_empty());
@@ -239,10 +233,7 @@ fn test_literal_anchor() {
 
 #[test]
 fn test_literal_anchor_with_attributes() {
-    if std::env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
-    let template_string = r#"output=${(red|bold):"foo"}"#;
+    let template_string = r#"output={(red|bold):"foo"}"#;
     let anchors = parse(template_string).unwrap();
     let anchor = &anchors[0];
     assert!(anchor.name.is_empty());
@@ -253,7 +244,7 @@ fn test_literal_anchor_with_attributes() {
     assert_eq!(val, "foo");
     assert!(anchor.attributes.len() > 0);
 
-    assert_eq!("${(red|bold):\"foo\"}", &template_string[anchor.start..anchor.end]);
+    assert_eq!("{(red|bold):\"foo\"}", &template_string[anchor.start..anchor.end]);
     assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Red).is_some());
     assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Bold).is_some());
 }

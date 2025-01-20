@@ -37,11 +37,11 @@ memory:
 The remaining memory is stored in a capture called 'mem'. Now to transform the input line into
 our desired output, we'll use the following template string:
 
-    Remaining memory: ${mem}
+    Remaining memory: {mem}
 
 Putting everything together the following command:
 
-    $ echo $LINE | grits -p 'Memory: (?<mem>[^ ]+)' -o 'Remaining memory: ${mem}'
+    $ echo $LINE | grits -p 'Memory: (?<mem>[^ ]+)' -o 'Remaining memory: {mem}'
 
 Gets us the following output:
 
@@ -58,7 +58,7 @@ Colorization is disabled under two circumstances:
 
 An example of how to disable color:
 
-    $ NO_COLOR=1 grits -p 'Memory: (?<mem>[^ ]+)' -o 'Remaining memory: ${mem}' file
+    $ NO_COLOR=1 grits -p 'Memory: (?<mem>[^ ]+)' -o 'Remaining memory: {mem}' file
 
 ------------------------
 ----OUTPUT TEMPLATE-----
@@ -67,14 +67,14 @@ The output template which is specified using `-o, --output-template` is a format
 that defines how to transform a line input and ultimately produce an output. The output
 template contains constructs called anchors which looks like the following:
     
-    ${log}
+    {log}
 
-This anchor, which begins with '$' and ends with '}', is a reference to a named capture
+This anchor, which begins with '{' and ends with '}', is a reference to a named capture
 from a regular expression that a user provides. If, for a given input line, there is a
 match for the `log` capture, then the value associated with the `log` capture will be used
 to interpolate the output string at the `log` anchor. For example:
 
-    $ echo 'level=info msg=foobar path=/baz' | grit -p 'msg=(?<log>[^ ]+)' -o 'transformed=${log}'
+    $ echo 'level=info msg=foobar path=/baz' | grit -p 'msg=(?<log>[^ ]+)' -o 'transformed={log}'
 
 Will get you the following output:
 
@@ -89,19 +89,19 @@ Anchors come with a handful of other features as well:
 2. Chain default values, which can be another anchor or a string literal. The first non-blank
 value will be used in the output (ultimately falls back to an empty string):
 
-    ${log || foo || bar[1] || \"NO MATCH\"}
+    {log || foo || bar[1] || \"NO MATCH\"}
 
 3. Apply to an anchor like so:
 
-    ${(red|bold):foo}
+    {(red|bold):foo}
 
 4. Apply ANSI-escape sequences to literals:
 
-    ${(cyan|underlined):\"foo\"}
+    {(cyan|underlined):\"foo\"}
 
-5. Escape characters with special meaning such as '$' with '\\':
+5. Escape characters with special meaning such as '{' with '\\':
 
-    USD: \\$${amount}
+    USD: \\{foo\\} {amount}
 
 ----------------
 ---ATTRIBUTES---
@@ -109,7 +109,7 @@ value will be used in the output (ultimately falls back to an empty string):
 As mentioned in the section prior, attributes are available to stylize the result of processing
 the anchors. Multiple attributes may be used together like so:
 
-    ${(red|bold|underlined):foo}
+    {(red|bold|underlined):foo}
 
 The following attributes are currently available:
 
@@ -139,18 +139,18 @@ The following attributes are currently available:
 ----------------
 1. Multi-file processing:
 
-    $ grits -p 'sysctl=(?<sysctl>.*)'` -p 'sysctl output: ${sysctl}' file1 file2
+    $ grits -p 'sysctl=(?<sysctl>.*)'` -p 'sysctl output: {sysctl}' file1 file2
 
 2. Piping:
 
-    $ docker logs -f 93670ea0964c | grits -p 'log_level=info(?<log>.*)' -o 'INFO LOG: ${log}'
+    $ docker logs -f 93670ea0964c | grits -p 'log_level=info(?<log>.*)' -o 'INFO LOG: {log}'
 
 3. Attributes, default values, and multiple regular expressions:
 
     $ kubectl logs -f -n foo -l app=bar | grits \\
          -p '^kernel:(?<kern>.*)' \\
          -p '^sysctl:(?<sys>.*)' \\
-         -o kernel=${(cyan):kern || \"NONE\"} sysctl=${(magenta):sys || \"NONE\"}
+         -o kernel=${(cyan):kern || \"NONE\"} sysctl={(magenta):sys || \"NONE\"}
 "
 )]
 pub struct Cli {

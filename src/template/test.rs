@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 #[test]
 fn test_output_template_basic() {
-    let template = "log=${foo} out=${bar} baz";
+    let template = "log={foo} out={bar} baz";
     let out = OutputTemplate::parse(template).unwrap();
     assert_eq!(out.targets.len(), 5);
 
@@ -17,7 +17,7 @@ fn test_output_template_basic() {
 
 #[test]
 fn test_output_template_no_match() {
-    let template = "log=${foo} out=${bar} baz";
+    let template = "log={foo} out={bar} baz";
     let out = OutputTemplate::parse(template).unwrap();
     assert_eq!(out.targets.len(), 5);
 
@@ -30,7 +30,7 @@ fn test_output_template_no_match() {
 
 #[test]
 fn test_output_template_default() {
-    let template = r#"log=${foo} out=${bar || "foobaz"} baz"#;
+    let template = r#"log={foo} out={bar || "foobaz"} baz"#;
     let out = OutputTemplate::parse(template).unwrap();
     assert_eq!(out.targets.len(), 5);
 
@@ -43,7 +43,7 @@ fn test_output_template_default() {
 
 #[test]
 fn test_output_template_indexes() {
-    let template = r#"log=${foo} out=${bar[1]}"#;
+    let template = r#"log={foo} out={bar[1]}"#;
     let out = OutputTemplate::parse(template).unwrap();
     assert_eq!(out.targets.len(), 4);
 
@@ -56,7 +56,7 @@ fn test_output_template_indexes() {
 }
 #[test]
 fn test_output_template_indexes_and_defaults() {
-    let template = r#"${foo[1]||bar[1]}"#;
+    let template = r#"{foo[1]||bar[1]}"#;
     let out = OutputTemplate::parse(template).unwrap();
     println!("{out:?}");
     assert_eq!(out.targets.len(), 1);
@@ -71,7 +71,7 @@ fn test_output_template_indexes_and_defaults() {
 
 #[test]
 fn test_output_template_attributes() {
-    let template = r#"${(red|bold):foo[1]||bar[1]}"#;
+    let template = r#"{(red|bold):foo[1]||bar[1]}"#;
     let out = OutputTemplate::parse(template).unwrap();
     println!("{out:?}");
     assert_eq!(out.targets.len(), 1);
