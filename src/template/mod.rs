@@ -33,9 +33,6 @@ impl OutputTemplate {
     pub fn parse(template: &str) -> Result<Self> {
         let anchors = parse::parse(template)?;
 
-        if anchors.is_empty() {
-            return Ok(Self::default());
-        }
         let mut targets = Vec::new();
 
         let mut left_cursor = 0;
