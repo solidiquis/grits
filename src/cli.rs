@@ -10,7 +10,7 @@ use std::{env, fmt, str::FromStr};
     about = "
 A text line processor that applies regular expressions with named captures to input lines
 and transforms them using a user-generated template. See the long help '--help' for further
-details and examples.",
+details and examples or visit the 'https://github.com/solidiquis/grits' repository.",
     long_about = include_str!("../docs/help.md"),
 )]
 pub struct Cli {

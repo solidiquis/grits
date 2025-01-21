@@ -119,6 +119,37 @@ fn test_output_template_required() {
 }
 
 #[test]
+fn test_output_template_required_with_attributes() {
+    let template = "log={!(red):foo} out={bar} baz";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 5);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec![]);
+    interpolation_map.insert("bar", vec!["bar_value"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(
+        resultant, "",
+        "foo doesn't have any matches so string should come back empty"
+    );
+
+    let template = "log={!(red):foo}";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 2);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec!["foo_value"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(
+        resultant,
+        format!("log={}", "foo_value".red()),
+        "foo doesn't have any matches so string should come back empty"
+    );
+}
+
+#[test]
 fn test_output_template_conditional_attr() {
     let template = "severity={(?red('(?i)error')|?cyan('(?i)info')):lvl}";
     let out = OutputTemplate::parse(template).unwrap();

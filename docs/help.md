@@ -6,12 +6,11 @@
     - [Indexing](#indexing)
     - [Default values](#default-values)
     - [Attributes](#attributes)
+    - [Conditional attributes](#conditional-attributes)
+    - [Filtering](#filtering)
     - [Other examples](#other-examples)
 * [Completions](#completions)
 * [Colorization](#colorization)
-* [Contributing](#contributing)
-* [Donating](#donating)
-* [FAQ](#faq)
 
 ## Usage
 
@@ -20,19 +19,21 @@ A text line processor that applies regular expressions with named captures to in
 and transforms them using a user-generated template. See the long help '--help' for further
 details and examples.
 
-Usage: grits [OPTIONS] --template <TEMPLATE> [FILES]...
+Usage: grits [OPTIONS] [FILES]...
 
 Arguments:
   [FILES]...  Input files
 
 Options:
-  -p, --pattern <PATTERN>          A regular expression with named captures. Can be specified multiple times
-  -t, --template <TEMPLATE>        A template string that defines how to transform a line input. See long '--help'
-  -r, --require <REQUIRE>          Name of capture that must have at least one match for the output to show. Can be specified multiple times
-      --line-buffered              Force output to be line-buffered. By default, output is line buffered when stdout is a terminal and block-buffered otherwise
-  -c, --completions <COMPLETIONS>  Produce completions for shell and exit [possible values: bash, elvish, fish, powershell, zsh]
-  -h, --help                       Print help (see more with '--help')
-  -V, --version                    Print version
+  -p, --pattern <PATTERN>            A regular expression with named captures. Can be specified multiple times
+  -t, --template <TEMPLATE>          A template string that defines how to transform a line input using times. Can be specified multiple times. See long '--help'
+  -s, --separator <SEPARATOR>        Separator used to join results of transforming each template if multiple are specified [default: ]
+  -r, --require <REQUIRE>            Comma-separated capture names that must have a match for a given input line to be processed; otherwise it is ignored
+      --require-mode <REQUIRE_MODE>  Modify '-r, --require' to require matching on all specified capture names or any [default: all] [possible values: all, any]
+      --line-buffered                Force output to be line-buffered. By default, output is line buffered when stdout is a terminal and block-buffered otherwise
+  -c, --completions <COMPLETIONS>    Produce completions for shell and exit [possible values: bash, elvish, fish, powershell, zsh]
+  -h, --help                         Print help (see more with '--help')
+  -V, --version                      Print version
 ```
 
 See the long `--help` description for further details and example from the command-line.
@@ -63,7 +64,7 @@ Check the [releases page](https://github.com/solidiquis/grits/releases) for preb
 
 ## Templating language
 
-`grits` uses a simple templating language to transform text, where templates consist of anchors.
+`grits` uses a simple templating language to transform text. Templates consist of anchors.
 Anchors are placeholders enclosed within `{...}` that correspond to named capture groups from
 the regular expression applied to the input. Once a match is found, the value from the
 capture group is inserted into the anchor’s position in the template string.
@@ -150,6 +151,66 @@ The following attributes are currently available:
 - `underlined` (underline text)
 - `reverse` (reverse text)
 - `crossed_out` (crossout text)
+- `lalign(number)` (left aligns text using specified argument as the width and an empty space, `' '` as the fill character)
+- `ralign(number)` (right aligns text using specified argument as the width and an empty space, `' '` as the fill character)
+- `calign(number)` (center aligns text using specified argument as the width and an empty space, `' '` as the fill character)
+
+### Conditional attributes
+
+Say you have these logs:
+
+```
+level=INFO msg="some info"
+level=ERROR msg="some error"
+```
+
+You use the following capture group to grab the log severity level:
+
+```
+'^level=(?<lvl>\w+)'
+```
+
+Depending on if it's `ERROR` or `INFO`, we may want to apply different colors. To achieve this affect, we can apply a `?` operator like so:
+
+```bash
+grits -p '^level=(?<lvl>\w+)' -t '${(?red("ERROR")|?cyan("INFO")):lvl}'
+```
+
+This will ensure that `ERROR` is printed with a red foreground while `INFO` is printed with a cyan foreground. The `?` operator modifies attributes
+such that its first argument is a regular expression. If it's first argument matches the result of the capture group, then that attribute is applied.
+
+The `?` operator is always prepended onto the attribute name like so: `?red`, `?cyan`, etc..
+
+Here is another example of conditional attributes being applied in a case-insensitive manner using a regular expression instead of a string literal:
+
+```bash
+grits -p '^level=(?<lvl>\w+)' -t '${(?red("(?i)error")|?cyan("(?i)info")):lvl}'
+```
+
+### Filtering
+
+If you want the result of a template transformation to show only if certain anchors have a corresponding match, then you can make use of the `!` operator
+which is always placed immediate after the opening `{` of an anchor.
+
+Say you have the following log lines:
+
+```
+level=INFO msg="some info"
+level=ERROR msg="some error"
+```
+
+Let's say you want to filter only the `INFO` logs, everything else should be ignored. You can accomplish this using the operator `!` like so:
+
+```bash
+grits -p '^level=(?<lvl>INFO)' -t '${!lvl}'
+```
+
+What this effectively accomplishes is that only logs that have a match for the `lvl` capture group will be transformed. Here is what filtering
+looks like with attributes:
+
+```bash
+grits -p '^level=(?<lvl>INFO)' -t '${!(red|bold):lvl}'
+```
 
 ### Other examples
 
@@ -187,16 +248,3 @@ grits --completions zsh > ~/.oh-my-zsh/completions/_grits
 
 `grits` follows the informal [NO_COLOR](https://no-color.org/) standard. Setting `NO_COLOR` to a non-blank value will disable output colorization.
 If stdout is not a terminal, colorization is automatically disabled.
-
-## Contributing
-
-All well-intentioned forms of contributions are welcome.
-
-## Donating
-
-If you like this tool, please consider [buying me a coffee](https://buymeacoffee.com/O3nsHqb7A9). Much appreciated!
-
-## FAQ
-
-Q: **Why is this called grits?**
-A: I was really craving shrimp & grits while writing this on a plane going to South Korea.

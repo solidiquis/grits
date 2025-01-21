@@ -32,3 +32,21 @@ tcpdump -nn | grits -- \
 <p align="center">
   <em>The top pane in the above screenshot is the raw output of tcpdump while the bottom pane shows the output being piped into grits.</em>
 </p>
+
+
+## Documentation
+
+The documentation for `grits` can be found [here](./docs/help.md). It is also available in the CLI via `--help`.
+
+## Contributing
+
+All well-intentioned forms of contributions are welcome.
+
+## Donating
+
+If you like this tool, please consider [buying me a coffee](https://buymeacoffee.com/O3nsHqb7A9). Much appreciated!
+
+## FAQ
+
+Q: **Why is this called grits?**
+A: I was really craving shrimp & grits while writing this on a plane going to South Korea.
