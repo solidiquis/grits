@@ -110,6 +110,9 @@ pub fn process_lines(tty: &mut TtyContext, args: &Cli) -> Result<()> {
             .collect::<Vec<String>>()
             .join(separator);
 
+        if output.is_empty() {
+            continue;
+        }
         writer.writeln(&output)?;
     }
     Ok(())

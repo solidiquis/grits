@@ -109,6 +109,14 @@ impl ParseError {
         }
     }
 
+    pub fn string_parameter_missing_closing_quote(char_index: usize, chars: &[char]) -> Self {
+        ParseError {
+            char_index,
+            partial_template: chars.iter().collect(),
+            message: String::from("Attribute's string parameter is missing a closing quote."),
+        }
+    }
+
     pub fn default_parsing_disallowed_char(char_index: usize, chars: &[char]) -> Self {
         ParseError {
             char_index,
@@ -160,14 +168,6 @@ impl ParseError {
             message: format!(
                 "Invalid syntax: expected a '{ATTRIBUTE_END}' after the closing '{ATTRIBUTE_CLOSE}' of attributes."
             ),
-        }
-    }
-
-    pub fn attribute_invalid_char(char_index: usize, chars: &[char]) -> Self {
-        ParseError {
-            char_index,
-            partial_template: chars.iter().collect(),
-            message: String::from("Invalid syntax: unrecognized character in attributes"),
         }
     }
 }

@@ -2,8 +2,8 @@
 name = "grits"
 authors = ["benjamin.van.nguyen@gmail.com"]
 description = """
-A text line processor that applies regular expressions with named captures
-to input lines and transforms them using a user-generated template.
+A line-text processor that applies regular expressions with named captures to input lines
+and transforms them using a template string. See the long help '--help' for further details and examples.
 """
 version = "0.2.0"
 edition = "2021"

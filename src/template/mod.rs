@@ -82,7 +82,7 @@ impl OutputTemplate {
                             out.push_str(val);
                         } else {
                             let stylized = Attribute::apply(val, &anchor.attributes);
-                            out.push_str(&format!("{stylized}"));
+                            out.push_str(&stylized);
                         }
                         continue;
                     }
@@ -99,7 +99,7 @@ impl OutputTemplate {
                                     out.push_str(val);
                                 } else {
                                     let stylized = Attribute::apply(val, &anchor.attributes);
-                                    out.push_str(&format!("{stylized}"));
+                                    out.push_str(&stylized);
                                 }
                                 break;
                             }
@@ -111,7 +111,7 @@ impl OutputTemplate {
                                         out.push_str(val);
                                     } else {
                                         let stylized = Attribute::apply(val, &anchor.attributes);
-                                        out.push_str(&format!("{stylized}"));
+                                        out.push_str(&stylized);
                                     }
                                     break;
                                 }

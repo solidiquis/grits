@@ -1,4 +1,8 @@
-use super::{Attribute, OutputTemplate};
+use super::{
+    parse::attr::{Attribute, AttributeKind},
+    OutputTemplate,
+};
+use crossterm::style::Stylize;
 use std::collections::HashMap;
 
 #[test]
@@ -81,7 +85,19 @@ fn test_output_template_attributes() {
     interpolation_map.insert("bar", vec!["bar_value_1", "bar_value_2"]);
 
     let resultant = out.transform(&interpolation_map);
-    let expected = Attribute::apply("bar_value_2", &[Attribute::Red, Attribute::Bold]);
+    let expected = Attribute::apply(
+        "bar_value_2",
+        &[
+            Attribute {
+                kind: AttributeKind::Red,
+                must_match: None,
+            },
+            Attribute {
+                kind: AttributeKind::Bold,
+                must_match: None,
+            },
+        ],
+    );
     assert_eq!(resultant, format!("{expected}"));
 }
 
@@ -100,4 +116,85 @@ fn test_output_template_required() {
         resultant, "",
         "foo doesn't have any matches so string should come back empty"
     );
+}
+
+#[test]
+fn test_output_template_required_with_attributes() {
+    let template = "log={!(red):foo} out={bar} baz";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 5);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec![]);
+    interpolation_map.insert("bar", vec!["bar_value"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(
+        resultant, "",
+        "foo doesn't have any matches so string should come back empty"
+    );
+
+    let template = "log={!(red):foo}";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 2);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec!["foo_value"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(
+        resultant,
+        format!("log={}", "foo_value".red()),
+        "foo doesn't have any matches so string should come back empty"
+    );
+}
+
+#[test]
+fn test_output_template_conditional_attr() {
+    let template = "severity={(?red('(?i)error')|?cyan('(?i)info')):lvl}";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 2);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("lvl", vec!["INFO"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(resultant, format!("severity={}", "INFO".cyan()));
+
+    interpolation_map.insert("lvl", vec!["ERROR"]);
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(resultant, format!("severity={}", "ERROR".red()));
+}
+
+#[test]
+fn test_output_template_alignment() {
+    let template = "{(lalign(9)):foo}";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 1);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec!["bar"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(resultant, "bar      ");
+
+    let template = "{(lalign(9)|red):foo}";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 1);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec!["bar"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(resultant, "bar      ".red().to_string());
+
+    let template = "{(red|lalign(9)):foo}";
+    let out = OutputTemplate::parse(template).unwrap();
+    assert_eq!(out.targets.len(), 1);
+
+    let mut interpolation_map = HashMap::new();
+    interpolation_map.insert("foo", vec!["bar"]);
+
+    let resultant = out.transform(&interpolation_map);
+    assert_eq!(resultant, "bar      ".red().to_string());
 }
