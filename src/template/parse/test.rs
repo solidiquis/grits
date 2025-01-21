@@ -1,4 +1,7 @@
-use super::{attr::Attribute, parse, DefaultValue};
+use super::{
+    attr::{Alignment, AttributeKind},
+    parse, DefaultValue,
+};
 
 #[test]
 fn test_parse_plain() {
@@ -215,8 +218,16 @@ fn test_attribute() {
     let anchors = parse(template_string).unwrap();
     let anchor = &anchors[0];
     assert_eq!("{(red|bold):foo}", &template_string[anchor.start..anchor.end]);
-    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Red).is_some());
-    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Bold).is_some());
+    assert!(anchor
+        .attributes
+        .iter()
+        .find(|a| a.kind == AttributeKind::Red)
+        .is_some());
+    assert!(anchor
+        .attributes
+        .iter()
+        .find(|a| a.kind == AttributeKind::Bold)
+        .is_some());
 }
 
 #[test]
@@ -246,8 +257,16 @@ fn test_literal_anchor_with_attributes() {
     assert!(anchor.attributes.len() > 0);
 
     assert_eq!("{(red|bold):\"foo\"}", &template_string[anchor.start..anchor.end]);
-    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Red).is_some());
-    assert!(anchor.attributes.iter().find(|a| a == &&Attribute::Bold).is_some());
+    assert!(anchor
+        .attributes
+        .iter()
+        .find(|a| a.kind == AttributeKind::Red)
+        .is_some());
+    assert!(anchor
+        .attributes
+        .iter()
+        .find(|a| a.kind == AttributeKind::Bold)
+        .is_some());
 }
 
 #[test]
@@ -294,4 +313,112 @@ fn test_required_anchor_no_defaults() {
     let template_string = "output={!'log'}";
     let anchors = parse(template_string);
     assert!(anchors.is_ok());
+}
+
+#[test]
+fn test_attr_conditional() {
+    let template_string = "output={(?red('INFO')):foo}";
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert_eq!("{(?red('INFO')):foo}", &template_string[anchor.start..anchor.end]);
+    assert_eq!(anchor.attributes.len(), 1);
+    let attr = &anchor.attributes[0];
+    assert_eq!(attr.kind, AttributeKind::Red);
+    assert!(attr.must_match.is_some());
+    assert!(attr.must_match.as_ref().unwrap().is_match("INFO"));
+}
+
+#[test]
+fn test_attr_conditional_regex() {
+    let template_string = "output={(?red('(?i)INFO')):foo}";
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert_eq!("{(?red('(?i)INFO')):foo}", &template_string[anchor.start..anchor.end]);
+    assert_eq!(anchor.attributes.len(), 1);
+    let attr = &anchor.attributes[0];
+    assert_eq!(attr.kind, AttributeKind::Red);
+    assert!(attr.must_match.is_some());
+    assert!(attr.must_match.as_ref().unwrap().is_match("INFO"));
+    assert!(attr.must_match.as_ref().unwrap().is_match("info"));
+}
+
+#[test]
+fn test_attr_conditional_escape() {
+    let template_string = r"output={(?red('(?i)O\'Conner')):foo}";
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert_eq!(
+        r"{(?red('(?i)O\'Conner')):foo}",
+        &template_string[anchor.start..anchor.end]
+    );
+    assert_eq!(anchor.attributes.len(), 1);
+    let attr = &anchor.attributes[0];
+    assert_eq!(attr.kind, AttributeKind::Red);
+    assert!(attr.must_match.is_some());
+    assert!(attr.must_match.as_ref().unwrap().is_match("o'conner"));
+}
+
+#[test]
+fn test_attr_conditional_multiple() {
+    let template_string = "output={(?red('ERROR')|?cyan('INFO')|bold):foo}";
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert_eq!(
+        "{(?red('ERROR')|?cyan('INFO')|bold):foo}",
+        &template_string[anchor.start..anchor.end]
+    );
+    assert_eq!(anchor.attributes.len(), 3);
+
+    let attr = &anchor.attributes[0];
+    assert_eq!(attr.kind, AttributeKind::Red);
+    assert!(attr.must_match.is_some());
+    assert!(attr.must_match.as_ref().unwrap().is_match("ERROR"));
+
+    let attr = &anchor.attributes[1];
+    assert_eq!(attr.kind, AttributeKind::Cyan);
+    assert!(attr.must_match.is_some());
+    assert!(attr.must_match.as_ref().unwrap().is_match("INFO"));
+
+    let attr = &anchor.attributes[2];
+    assert_eq!(attr.kind, AttributeKind::Bold);
+    assert!(attr.must_match.is_none());
+
+    let template_string = "output={(?red('ERROR')|bold|?cyan('INFO')):foo}";
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert_eq!(
+        "{(?red('ERROR')|bold|?cyan('INFO')):foo}",
+        &template_string[anchor.start..anchor.end]
+    );
+    assert_eq!(anchor.attributes.len(), 3);
+
+    let attr = &anchor.attributes[0];
+    assert_eq!(attr.kind, AttributeKind::Red);
+    assert!(attr.must_match.is_some());
+    assert!(attr.must_match.as_ref().unwrap().is_match("ERROR"));
+
+    let attr = &anchor.attributes[1];
+    assert_eq!(attr.kind, AttributeKind::Bold);
+    assert!(attr.must_match.is_none());
+
+    let attr = &anchor.attributes[2];
+    assert_eq!(attr.kind, AttributeKind::Cyan);
+    assert!(attr.must_match.is_some());
+    assert!(attr.must_match.as_ref().unwrap().is_match("INFO"));
+}
+
+#[test]
+fn test_attr_alignment() {
+    let template_string = "output={(lalign(9)):foo}";
+    let anchors = parse(template_string).unwrap();
+    let anchor = &anchors[0];
+    assert_eq!("{(lalign(9)):foo}", &template_string[anchor.start..anchor.end]);
+    assert_eq!(anchor.attributes.len(), 1);
+    let attr = &anchor.attributes[0];
+
+    let AttributeKind::Align { direction, width } = attr.kind else {
+        panic!("expected align attribute");
+    };
+    assert_eq!(width, 9);
+    assert_eq!(direction, Alignment::Left)
 }
