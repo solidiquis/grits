@@ -1,7 +1,6 @@
 # Grits Documentation
 
 * [Usage](#usage)
-* [Installation](#installation)
 * [Templating language](#templating-language)
     - [Indexing](#indexing)
     - [Default values](#default-values)
@@ -35,32 +34,6 @@ Options:
   -h, --help                         Print help (see more with '--help')
   -V, --version                      Print version
 ```
-
-See the long `--help` description for further details and example from the command-line.
-
-## Installation
-
-### crates.io
-
-```bash
-cargo install grits
-```
-
-### cURL
-
-```bash
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/solidiquis/grits/releases/download/v0.2.0/grits-installer.sh | sh
-```
-
-### Powershell
-
-```bash
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/solidiquis/grits/releases/download/v0.2.0/grits-installer.ps1 | iex"
-```
-
-### Manual installation
-
-Check the [releases page](https://github.com/solidiquis/grits/releases) for prebuilt binaries.
 
 ## Templating language
 

@@ -5,7 +5,7 @@ description = """
 A line-text processor that applies regular expressions with named captures to input lines
 and transforms them using a template string. See the long help '--help' for further details and examples.
 """
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 readme = "README.md"
 license = "MIT"
