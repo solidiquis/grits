@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/grits.svg)](https://crates.io/crates/grits)
 [![Crates.io](https://img.shields.io/crates/d/grits)](https://crates.io/crates/grits)
 
-A simple line-text formatter that makes it simple to parse, filter, and format live logs, turning noise into meaningful insights.
+A simple line-text formatter that makes it simple to parse, filter, and format live logs turning noise into meaningful insights.
 
 ![demo gif](images/log.gif)
 
